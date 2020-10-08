@@ -1,10 +1,3 @@
-/*
-Parámetros: 
-argv[0] filename 
-argv[1] server_ipaddress 
-argv[2] portno
-*/
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -12,7 +5,7 @@ argv[2] portno
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
-#include <netdb.h> // Define la estructura hostent que guarda información de un host
+#include <netdb.h>
 
 void error(const char *msg)
 {
@@ -34,7 +27,7 @@ int main(int argc, char *argv[])
     }
 
     portno = atoi(argv[2]);
-    sockfd = socket(AF_INET, SOCK_STREAM, 0); // SOCK_STREAM es tcp
+    sockfd = socket(AF_INET, SOCK_STREAM, 0);
     if (sockfd < 0)
         error("Error abriendo el socket");
 

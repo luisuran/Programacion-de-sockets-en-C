@@ -6,6 +6,7 @@
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <netdb.h>
+#include <ctype.h> // Para usar isspace()
 
 void error(const char *msg)
 {
@@ -19,7 +20,7 @@ int main(int argc, char *argv[])
     struct sockaddr_in serv_addr;
     struct hostent *server;
 
-    char buffer[255];
+    char buffer[512];
     if (argc < 3)
     {
         fprintf(stderr, "Indique IP del servidor y número de puerto\n");
@@ -45,24 +46,35 @@ int main(int argc, char *argv[])
     if (connect(sockfd, (struct sockaddr *)&serv_addr, sizeof(serv_addr)) < 0)
         error("Fallo en la conexión");
 
-    while (1)
+    bzero(buffer, 512);
+
+    FILE *f; // f es un puntero a un archivo
+    int palabras = 0;
+
+    char c;
+
+    f = fopen("prueba.txt", "r"); // Al leer el puntero de archivo se situa al inicio de la primer palabra
+
+    while ((c = getc(f)) != EOF) // Contamos la cantidad de palabras en el archivo.
+                                 // getc(archivo) lee el siguiente caracter del archivo
     {
-        bzero(buffer, 255);
-        fgets(buffer, 255, stdin);
-        n = write(sockfd, buffer, strlen(buffer));
-        if (n < 0)
-            error("Error de escritura");
-
-        bzero(buffer, 255);
-        n = read(sockfd, buffer, 255);
-        if (n < 0)
-            error("Error de lectura");
-        printf("Server: %s", buffer);
-
-        int i = strncmp("SALIR", buffer, 3);
-        if (i == 0)
-            break;
+        fscanf(f, "%s", buffer);
+        if (isspace(c) || c == '\t' || c == '\n') // Contamos las palabras
+            palabras++;
     }
+
+    write(sockfd, &palabras, sizeof(int));
+    rewind(f); // Volvemos el puntero a la primera posición del archivo
+
+    char ch;
+    while (ch != EOF)
+    {
+        fscanf(f, "%s", buffer);
+        write(sockfd, buffer, 512);
+        ch = fgetc(f);
+    }
+
+    printf("El archivo se envió correctamente.\n");
 
     close(sockfd);
 

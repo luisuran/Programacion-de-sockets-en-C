@@ -5,6 +5,7 @@
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
+#include <ctype.h>
 
 void error(const char *msg)
 {
@@ -21,7 +22,7 @@ int main(int argc, char *argv[])
     }
 
     int sockfd, newsockfd, portno, n;
-    char buffer[255];
+    char buffer[512];
 
     struct sockaddr_in serv_addr, cli_addr;
     socklen_t clilen;
@@ -49,30 +50,23 @@ int main(int argc, char *argv[])
     if (newsockfd < 0)
         error("Error aceptando la conexión");
 
-    while (1)
+    FILE *fp;
+
+    int ch = 0;
+    fp = fopen("prueba_recibido.txt", "a"); // Si no existe el fichero, lo crea.
+                                            // Si el fichero existe agrega ("a") los datos al final del fichero
+    int palabras;
+
+    read(newsockfd, &palabras, sizeof(int));
+
+    while (ch != palabras) // Recorre el loop 'palabras' número de veces
     {
-        bzero(buffer, 255);
-        n = read(newsockfd, buffer, 255); // En 'buffer' se guarda el mensaje del cliente
-                                          // Siempre un 'read' en el servidor implica un 'write' en el cliente
-        if (n < 0)
-        {
-            error("Error de lectura");
-        }
-        printf("Cliente: %s", buffer);
-
-        bzero(buffer, 255);
-        fgets(buffer, 255, stdin);
-
-        n = write(newsockfd, buffer, strlen(buffer));
-        if (n < 0)
-        {
-            error("Error de escritura");
-        }
-
-        int i = strncmp("SALIR", buffer, 3); // strncmp compara strings
-        if (i == 0)
-            break;
+        read(newsockfd, buffer, 512);
+        fprintf(fp, "%s ", buffer);
+        ch++;
     }
+
+    printf("Archivo recibido exitosamente.\n");
 
     close(newsockfd);
     close(sockfd);
